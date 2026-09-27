@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "dataset_validated": "data\\normalized\\normalized_villages.csv",
+  "status": "PASS",
+  "total_rows": 16002,
+  "passed_checks": 16002,
+  "failed_checks": 0,
+  "warnings": 0,
+  "duplicate_count": 0,
+  "invalid_type_count": 0,
+  "null_count": 0,
+  "arithmetic_mismatch_count": 0,
+  "unique_lgd_codes": 16002,
+  "total_households": 9553387,
+  "total_fhtc": 7261892,
+  "total_gap": 2291495,
+  "errors": []
+}

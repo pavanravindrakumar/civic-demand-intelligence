@@ -1,0 +1,60 @@
+# Civic Demand Intelligence — Backend Production Dockerfile
+#
+# Build context: repository root (civic-demand-intelligence/)
+# Production start command: uvicorn backend.app.main:app
+#
+# The import path is backend.app.main:app because:
+#   - The repository root is the working directory.
+#   - The application uses "from backend.app.X import Y" throughout.
+#   - All tests run with PYTHONPATH including the repository root, confirming this structure.
+#   - Using "app.main:app" would require the working directory to be backend/, which would
+#     break the "from backend.app.X" imports used everywhere else in the application.
+
+FROM python:3.11-slim AS base
+
+# Set working directory to the repository root inside the container.
+# All relative-path resolutions in the application are relative to this directory.
+WORKDIR /app
+
+# ── Install OS-level dependencies ──────────────────────────────────────────────
+# No build tools are required for this application's pure-Python dependencies.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Install Python production dependencies ────────────────────────────────────
+# Copy requirements first to maximise Docker layer cache hits.
+# Do NOT install requirements-dev.txt — pytest is a dev-only dependency.
+COPY backend/requirements.txt ./backend/requirements.txt
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
+# ── Copy application source ────────────────────────────────────────────────────
+# Copy the entire backend package and required data assets.
+COPY backend/ ./backend/
+COPY data/normalized/ ./data/normalized/
+
+# ── Non-root user ──────────────────────────────────────────────────────────────
+# Create a non-root user for the production process.
+# The data/local_development directory (for JSONL writes) is created and owned by this user.
+RUN useradd --create-home --shell /bin/bash appuser \
+    && mkdir -p ./data/local_development \
+    && chown -R appuser:appuser /app
+
+USER appuser
+
+# ── Runtime configuration ──────────────────────────────────────────────────────
+# Cloud Run injects PORT=8080 automatically. We default to 8080 to match.
+ENV PORT=8080
+ENV PYTHONPATH=/app
+
+# Expose the port Cloud Run will route traffic to.
+EXPOSE 8080
+
+# ── Production startup ─────────────────────────────────────────────────────────
+# --host 0.0.0.0   : bind to all interfaces (required for Cloud Run)
+# --port $PORT     : Cloud Run controls the port via the PORT env var
+# --workers 1      : single worker is safe for this stateless read-heavy application;
+#                    the in-memory caches (analytics CSV, GeoJSON) are per-process and
+#                    must not be split across workers without a shared cache layer.
+# No --reload      : --reload is a development-only flag and must never be used in production.
+CMD uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT} --workers 1

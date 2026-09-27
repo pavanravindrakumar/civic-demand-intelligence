@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-09-25T10:30:03+05:30",
+  "model": "gemini-3.1-pro-preview",
+  "project": "civic-intelligence-hackathon",
+  "location": "global",
+  "exposed_tool": "get_analytics_summary",
+  "request_count": 1,
+  "response_type": "ERROR",
+  "function_name": null,
+  "status": "FAILED",
+  "error": "Default credentials were not found (ADC missing)"
+}

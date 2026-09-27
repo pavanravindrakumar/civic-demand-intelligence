@@ -1,0 +1,18 @@
+{
+  "project": "civic-intelligence-hackathon",
+  "dataset": "civic_intelligence",
+  "table": "normalized_villages",
+  "source_file": "data/normalized/normalized_villages.csv",
+  "load_status": "SUCCESS",
+  "row_count": 16002,
+  "distinct_lgd_village_codes": 16002,
+  "total_households": 9553387,
+  "total_fhtc": 7261892,
+  "total_reported_household_gap": 2291495,
+  "invalid_required_identifier_count": 0,
+  "invalid_household_count": 0,
+  "invalid_fhtc_count": 0,
+  "fhtc_greater_than_households_count": 0,
+  "gap_arithmetic_mismatch_count": 0,
+  "schema_version": "v1"
+}

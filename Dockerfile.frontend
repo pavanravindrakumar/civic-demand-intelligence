@@ -1,0 +1,62 @@
+# Civic Demand Intelligence — Frontend Production Dockerfile
+#
+# Build context: frontend/ directory
+# Next.js version: 16.3.6  |  Node.js: 22
+#
+# Uses Next.js standalone output mode (next.config.ts: output: "standalone")
+# which produces a minimal self-contained server bundle without requiring
+# all of node_modules to be shipped in the final image.
+#
+# NEXT_PUBLIC_API_URL must be injected at build time via --build-arg or
+# at runtime if using a server-side URL rewriting approach.
+# See frontend/.env.example for documentation.
+
+# ── Stage 1: deps ─────────────────────────────────────────────────────────────
+FROM node:22-slim AS deps
+WORKDIR /frontend
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# ── Stage 2: builder ──────────────────────────────────────────────────────────
+FROM node:22-slim AS builder
+WORKDIR /frontend
+
+# Re-install all dependencies (including devDependencies) for the build step.
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy application source.
+COPY . .
+
+# NEXT_PUBLIC_API_URL is embedded at build time. Provide via --build-arg:
+#   docker build --build-arg NEXT_PUBLIC_API_URL=https://... -f Dockerfile.frontend frontend/
+# If not provided, the application falls back to http://localhost:8000 (dev default).
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+RUN npm run build
+
+# ── Stage 3: runner ───────────────────────────────────────────────────────────
+# Only the standalone output is needed at runtime — no node_modules required.
+FROM node:22-slim AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Create a non-root user for the runtime process.
+RUN useradd --create-home --shell /bin/bash appuser
+USER appuser
+
+# Copy only the standalone build output and static assets.
+# The standalone output already includes a self-contained server.js.
+COPY --from=builder --chown=appuser:appuser /frontend/.next/standalone ./
+COPY --from=builder --chown=appuser:appuser /frontend/.next/static ./.next/static
+COPY --from=builder --chown=appuser:appuser /frontend/public ./public
+
+EXPOSE 3000
+
+# Production startup using the Next.js standalone server.
+# PORT is configurable via env var (Cloud Run injects PORT automatically).
+CMD node server.js

@@ -1,0 +1,16 @@
+{
+  "total_jjm_rows": 16002,
+  "total_lgd_rows": 17957,
+  "extracted_lgd_codes": 16002,
+  "duplicate_lgd_in_jjm": 0,
+  "duplicate_lgd_in_source": 0,
+  "direct_matches": 16002,
+  "unmatched": 0,
+  "missing_hh_fhtc": 0,
+  "fhtc_gt_hh": 0,
+  "negative_values": 0,
+  "total_state_hh": 9553387,
+  "total_state_fhtc": 7261892,
+  "total_state_gap": 2291495,
+  "duplicate_output_records": 0
+}

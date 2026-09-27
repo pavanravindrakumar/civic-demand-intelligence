@@ -1,0 +1,8 @@
+# Development and test dependencies — DO NOT install in production Docker images.
+# Install with: pip install -r requirements-dev.txt
+# (requirements.txt must already be installed for the application to be importable)
+-r requirements.txt
+
+# Test runner — kept at the exact version used during verified test runs (220 passed)
+pytest==7.4.3
+anyio==4.15.1
